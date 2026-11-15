@@ -1,0 +1,31 @@
+package com.example.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+// Warm Sunset & Romantic Palette (Light Mode)
+val WarmCream = Color(0xFFFFF8F2)
+val SoftParchment = Color(0xFFFFFDF9)
+val BlushSand = Color(0xFFF9EAE1)
+val WarmRose = Color(0xFFD65B7A)
+val DeepRose = Color(0xFF9E3251)
+val SoftPink = Color(0xFFFADCE4)
+val ChampagneGold = Color(0xFFC99E32)
+val SoftGoldTint = Color(0xFFF6E7C1)
+val SunsetOrange = Color(0xFFE8845C)
+val SunsetPeach = Color(0xFFFFDFC8)
+val DarkBrownText = Color(0xFF3A2220)
+val MutedCocoaText = Color(0xFF6E4E4A)
+val WarmOutline = Color(0xFFE5C9C0)
+
+// Candlelight Velvet Palette (Dark Mode)
+val VelvetBurgundy = Color(0xFF1A0F14)
+val DeepPlumSurface = Color(0xFF26171E)
+val ElevatedPlum = Color(0xFF332029)
+val CandlelightRose = Color(0xFFF296AD)
+val DarkModeRoseContainer = Color(0xFF5B2536)
+val MoonlightGold = Color(0xFFE5C168)
+val DarkModeGoldContainer = Color(0xFF4C3B17)
+val DuskPeach = Color(0xFFF4A886)
+val IvoryText = Color(0xFFFAF0EB)
+val SoftRoseMutedText = Color(0xFFD4B5B0)
+val PlumOutline = Color(0xFF533941)

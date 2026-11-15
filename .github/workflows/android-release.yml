@@ -1,0 +1,123 @@
+name: Android APK Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Optional tag name (e.g. v1.0.0). Defaults to v<versionName>-build.<run_number>."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Package Signed APK
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      apk_filename: ${{ steps.meta.outputs.apk_filename }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Decode debug keystore
+        run: |
+          if [ -f debug.keystore.base64 ]; then
+            base64 -d debug.keystore.base64 > debug.keystore
+          fi
+
+      - name: Determine version & release asset filename
+        id: meta
+        run: |
+          VERSION_NAME=$(grep -E 'versionName\s*=' app/build.gradle.kts | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
+          VERSION_NAME=${VERSION_NAME:-1.0}
+
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            VERSION_LABEL="${TAG#v}"
+          elif [ -n "${{ inputs.release_tag }}" ]; then
+            TAG="${{ inputs.release_tag }}"
+            VERSION_LABEL="${TAG#v}"
+          else
+            TAG="v${VERSION_NAME}-build.${GITHUB_RUN_NUMBER}"
+            VERSION_LABEL="${VERSION_NAME}-build.${GITHUB_RUN_NUMBER}"
+          fi
+
+          APK_FILENAME="JourneyOfTwoSouls-v${VERSION_LABEL}.apk"
+          echo "release_tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "apk_filename=${APK_FILENAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Run unit & Robolectric tests
+        run: gradle :app:testDebugUnitTest --no-daemon
+
+      - name: Build signed APK
+        id: build_apk
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          mkdir -p dist
+          if [ -n "${RELEASE_KEYSTORE_BASE64}" ] && [ -n "${STORE_PASSWORD}" ] && [ -n "${KEY_PASSWORD}" ]; then
+            echo "${RELEASE_KEYSTORE_BASE64}" | base64 -d > my-upload-key.jks
+            export KEYSTORE_PATH="${GITHUB_WORKSPACE}/my-upload-key.jks"
+            gradle :app:assembleRelease --no-daemon
+            cp app/build/outputs/apk/release/app-release.apk "dist/${{ steps.meta.outputs.apk_filename }}"
+          else
+            gradle :app:assembleDebug --no-daemon
+            cp app/build/outputs/apk/debug/app-debug.apk "dist/${{ steps.meta.outputs.apk_filename }}"
+          fi
+
+      - name: Upload APK as GitHub Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.apk_filename }}
+          path: dist/${{ steps.meta.outputs.apk_filename }}
+          retention-days: 90
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download built APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.apk_filename }}
+          path: dist
+
+      - name: Create GitHub Release with direct APK asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build.outputs.release_tag }}
+          name: Journey of Two Souls ${{ needs.build.outputs.release_tag }}
+          make_latest: true
+          generate_release_notes: true
+          files: dist/${{ needs.build.outputs.apk_filename }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

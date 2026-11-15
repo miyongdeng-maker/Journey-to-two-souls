@@ -1,0 +1,6 @@
+{
+  "name": "Journey of Two Souls",
+  "description": "A private world of two hearts, preserving our love story, letters, memories, promises and dreams.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

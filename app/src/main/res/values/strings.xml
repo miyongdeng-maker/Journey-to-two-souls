@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Journey of Two Souls</string>
+    <string name="app_subtitle">Two hearts, one journey, a love story without an ending.</string>
+    <string name="couple_names">Miyong Bangot &amp; Juliana</string>
+    <string name="welcome_message">A quiet sanctuary of our shared laughter, unspoken promises, handwritten letters, and every golden hour still waiting for us.</string>
+    <string name="enter_love_story">Enter Our Love Story</string>
+    <string name="unlock_title">Unlock Our Sanctuary</string>
+    <string name="unlock_subtitle">Private keepsake for Miyong &amp; Juliana</string>
+    <string name="password_label">Private Password</string>
+    <string name="unlock_button">Unlock Our World</string>
+    <string name="incorrect_password">That password didn\'t open our keepsake. Please try again with love.</string>
+    <string name="return_to_cover">Back to Cover</string>
+</resources>
